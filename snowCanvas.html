@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>飞雪</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<style>
+		* {margin: 0; padding: 0;}
+		body {
+			background: #6b92b9;
+		}
+		.wrap{
+			position: relative;
+		}
+		#canvas {
+			display: block;
+		}
+	</style>
+</head>
+<body>
+<div class="wrap">
+	<canvas id="canvas"></canvas>
+</div>
+	<script>
+		window.onload = function() {
+			var canvas = document.getElementById("canvas");
+			
+			var snow = {
+				canvas: null,
+				ctx: null,
+				options: {},
+				timer: null,
+				init(canvas, options) {
+					this.canvas = canvas;
+					this.ctx = canvas.getContext("2d");
+					this.canvas.width = options.canvasWidth;
+					this.canvas.height = options.canvasHeight;
+					this.options = {
+						snowDensity: options.snowDensity || 10, // 雪花的密度 多少颗粒
+						angle: options.angle || 0,
+						particles: [], // 颗粒坐标
+						canvasWidth: options.canvasWidth || 500,
+						canvasHeight: options.canvasHeight || 500,
+						snowSpeed: options.snowSpeed || 0,
+						raduisMultiple: options.raduisMultiple || 2,
+						minRaduis: options.minRaduis || 1,
+						...options
+					}
+					console.log(options, this.options)
+					clearInterval(this.timer);
+					this.start();
+				},
+				start() {
+					// 生成颗粒的坐标
+					for (var i = 0; i < this.options.snowDensity; i++) {
+						this.options.particles.push({
+							x: Math.random() * this.options.canvasWidth, // x轴的坐标
+							y: Math.random() * this.options.canvasHeight, // y轴的坐标
+							r: Math.random() * this.options.raduisMultiple + this.options.minRaduis, // 半径
+							d: Math.random() * this.options.snowDensity // 密度
+						})
+					}
+					this.draw();
+					this.timer = setInterval(() => {
+						this.draw();
+					}, this.options.snowSpeed);
+				},
+				// 画雪花
+				draw() {
+					this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+					this.ctx.clearRect(0, 0, this.options.canvasWidth, this.options.canvasHeight);
+					this.ctx.beginPath();
+					for (var i = 0; i < this.options.snowDensity; i++) {
+						let item = this.options.particles[i];
+						this.ctx.moveTo(item.x, item.y);
+						this.ctx.arc(item.x, item.y, item.r, 0, Math.PI * 2, true);
+					}
+					this.ctx.fill();
+					this.update();
+				},
+				// 更新雪花的坐标
+				update() {
+					this.options.angle += 0.01;
+					for (var i = 0; i < this.options.snowDensity; i++) {   
+						var p = this.options.particles[i];
+						p.y += Math.cos(this.options.angle + p.d) + 1 + p.r / 2;
+						p.x += Math.sin(this.options.angle) * 2;
+						if (p.y >= this.options.canvasHeight || p.x <= 0 || p.x >= this.options.canvasWidth) { 
+							var rand = Math.random();
+							p.r = Math.random() * this.options.raduisMultiple + this.options.minRaduis;
+							p.d = Math.random() * this.options.snowDensity;
+							if(rand > 0.5) {
+								p.y = 0;
+								p.x = Math.random() * this.options.canvasWidth;
+							} else {
+								p.x = 0;
+								p.y = Math.random() * this.options.canvasHeight;
+							}
+						}
+			    }
+				}
+			}
+
+			var W = window.innerWidth;
+			var H = window.innerHeight;
+			snow.init(canvas, {
+				canvasWidth: W, 
+				canvasHeight: H, 
+				snowDensity: 100, 
+				snowSpeed: 30,
+				raduisMultiple: 2
+			});
+			window.onresize = function() {
+				W = window.innerWidth;
+				H = window.innerHeight;
+				snow.init(canvas, {
+					canvasWidth: W, 
+					canvasHeight: H, 
+					snowDensity: 100, 
+					snowSpeed: 30,
+					raduisMultiple: 2
+				});
+			}
+		}
+	</script>
+</body>
+</html>
