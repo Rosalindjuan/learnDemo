@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>wave</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #000;
+    }
+    
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    var c, cx, width, height, fov, objs;
+    var Point = function(x, z) {
+      this.x = x;
+      this.maxHeight = 300;
+      this.y = Math.random() * this.maxHeight;
+      this.z = z;
+      this.r = Math.floor(Math.random() * 128) + 127;
+      this.g = Math.floor(Math.random() * 64);
+      this.b = Math.floor(Math.random() * 64);
+      this.direction = 1;
+      this.calculatePos = function() {
+        var scale = fov / (fov + this.z);
+        this.scaleX = this.x;
+        this.scaleY = this.y;
+        this.scaleX = this.x * scale + width / 2;
+        this.scaleY = this.y * scale + height / 2;
+        this.raduis = scale;
+      }
+      this.draw = function() {
+        this.calculatePos();
+        if (this.scaleX > 0 && this.scaleX <= width && this.scaleY > 0 && this.scaleY <= height) {
+          cx.beginPath();
+          cx.arc(this.scaleX, this.scaleY, this.raduis, 0, Math.PI * 2, false);
+          cx.fillStyle = `rgba(${this.r}, ${this.g}, ${this.b}, 1)`;
+          cx.fill();
+        }
+      }
+      this.update = function() {
+        this.z -= 1;
+        if (this.z < -fov) {
+          this.z += fov * 2;
+          this.r = Math.floor(Math.random() * 128) + 127;
+          this.g = Math.floor(Math.random() * 64);
+          this.b = Math.floor(Math.random() * 64);
+        }
+        this.draw();
+      }
+    }
+    function init() {
+      objs = [];
+      c = document.getElementById('canvas');
+      cx = c.getContext('2d');
+      width = c.width = window.innerWidth;
+      height = c.height = window.innerHeight;
+      window.addEventListener('resize', function() {
+        width = c.width = window.innerWidth;
+        height = c.height = window.innerHeight;
+      }, false);
+      cx.globalCompositeOperation = 'lighter';
+      fov = 180;
+      for(var x = -200; x < 200; x += 14) {
+        for (let z = -250; z < 250; z += 10) {
+          var p = new Point(x, z);
+          objs.push(p);
+        }
+      }
+    }
+    function clear() {
+      cx.clearRect(0, 0, width, height);
+    }
+    function go() {
+      clear();
+      for (let i = 0; i < objs.length; i++) {
+        obj = objs[i];
+        obj.update();
+      }
+    }
+    function run() {
+      window.requestAnimationFrame(run);
+      go();
+    }
+    init();
+    run();
+   </script>
+</body>
+</html>

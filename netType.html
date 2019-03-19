@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>判断网络类型和手机型号</title>
+</head>
+<body>
+	<h3 id="online"></h3>
+	<h3 id="net-type"></h3>
+	<h2>移动设备的型号</h2>
+	<h3 id="gpu"></h3>
+	<h3 id="device-models"></h3>
+	<p>获取移动设备的型号代码适合ios移动端，目前还无法识别同一代的 iPad Air 和 iPad mini，因为它们的 GPU 和分辨率均相同，但是延续这个思路其实是有很多解决方案的，比如大家可以研究下这两个设备的话筒和喇叭个数，而这个数量也是可以通过 JS 获取的</p>
+	
+	<script>
+		var online = document.getElementById('online');
+		var netType = document.getElementById('net-type');
+		online.innerHTML = `网络是否在线：${navigator.onLine}`;
+		let netWorkType = getNetworkType();
+		netType.innerHTML = `网络类型：` + netWorkType;
+		// 判断网络类型
+		function getNetworkType() {
+			var ua = navigator.userAgent;
+			var networkStr = ua.match(/NetType\/\w+/) ? ua.match(/NetType\/\w+/)[0] : 'NetType/other';
+			networkStr = networkStr.toLowerCase().replace('nettype/', '');
+			var networkType;
+			switch(networkStr) {
+				case 'wifi':
+					networkType = 'wifi';
+					break;
+				case '4g':
+					networkType = '4g';
+					break;
+				case '3g':
+					networkType = '3g';
+					break;
+				case '3gnet':
+					networkType = '3g';
+					break;
+				case '2g':
+					networkType = '2g';
+					break;
+				default:
+					networkType = 'other';
+			}
+			return networkType;
+		}
+		// 手机型号
+		(function () {
+			var canvas, gl, glRenderer, models,
+				devices = {
+					"Apple A7 GPU": {
+						1136: ["iPhone 5", "iPhone 5s"],
+						2048: ["iPad Air", "iPad Mini 2", "iPad Mini 3"]
+					},
+
+					"Apple A8 GPU": {
+						1136: ["iPod touch (6th generation)"],
+						1334: ["iPhone 6"],
+						2001: ["iPhone 6 Plus"],
+						2048: ["iPad Air 2", "iPad Mini 4"]
+					},
+
+					"Apple A9 GPU": {
+						1136: ["iPhone SE"],
+						1334: ["iPhone 6s"],
+						2001: ["iPhone 6s Plus"],
+						2224: ["iPad Pro (9.7-inch)"],
+						2732: ["iPad Pro (12.9-inch)"]
+					},
+
+					"Apple A10 GPU": {
+						1334: ["iPhone 7"],
+						2001: ["iPhone 7 Plus"]
+					}
+				};
+			
+			// 获取canvas
+			function getCanvas() {
+				if (canvas == null) {
+					canvas = document.createElement('canvas')
+				}
+				return canvas
+			}
+
+			function getGl() {
+				if (gl == null) {
+					gl = getCanvas().getContext('experimental-webgl')
+				}
+				console.log(gl)
+				return gl
+			}
+
+			function getScreenWidth() {
+				return Math.max(screen.width, screen.height) * (window.devicePixelRatio || 1);
+			}
+
+			function getGlRenderer() {
+				if (glRenderer == null) {
+					debugInfo = getGl().getExtension('WEBGL_debug_renderer_info');
+					glRenderer = debugInfo == null ? 'unknown' : getGl().getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+				}
+				return glRenderer;
+			}
+			
+			function getModels(){
+				if(models == null) {
+					var device = devices[getGlRenderer()]
+					if(device == undefined) {
+						models = ['unknown']
+					} else {
+						models = device[getScreenWidth()]
+						if(models == undefined) {
+							models = ['unknown']
+						}
+					}
+				}
+				return models
+			}
+			if (window.MobileDevice == undefined) {
+				window.MobileDevice = {};
+			}
+			window.MobileDevice.getGlRenderer = getGlRenderer;
+			window.MobileDevice.getModels = getModels;
+			// var canvas = document.createElement('canvas')
+			// var gl = canvas.getContext('experimental-webgl')
+			// var debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+			// alert(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+			
+			var gpu = document.getElementById('gpu')
+			var deviceModels = document.getElementById('device-models')
+			gpu.innerHTML = 'GPU: ' + MobileDevice.getGlRenderer()
+			deviceModels.innerHTML = 'Device Models: ' + MobileDevice.getModels()
+		})()
+	</script>
+</body>
+</html>
